@@ -1,12 +1,3 @@
-"""
-Generates structured analytics from a finished conversation.
-
-After a conversation ends, we ask the model (separately, with a narrow
-JSON-only instruction) to read the transcript and extract useful lead
-fields. This is deliberately a *second*, separate call with its own tiny
-system prompt so the sales-agent prompt itself stays focused on the
-conversation, and analytics extraction stays easy to audit/change.
-"""
 import json
 import os
 
@@ -49,7 +40,6 @@ def generate_analytics(transcript_text: str) -> dict:
         messages=[{"role": "user", "content": transcript_text}],
     )
     raw = "".join(block.text for block in response.content if block.type == "text").strip()
-    # Defensive cleanup in case the model wraps in ```json fences anyway
     raw = raw.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
     try:
         return json.loads(raw)

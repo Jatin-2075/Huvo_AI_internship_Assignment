@@ -1,12 +1,3 @@
-"""
-Replays each scenario in test_scenarios.md against a running local server
-(default http://localhost:8000) and prints the bot's actual replies, so you
-can paste fresh "actual output" evidence before recording the demo video.
-
-Usage:
-    uvicorn app.main:app --reload   # in one terminal
-    python tests/run_scenarios.py   # in another
-"""
 import requests
 
 BASE_URL = "http://localhost:8000"

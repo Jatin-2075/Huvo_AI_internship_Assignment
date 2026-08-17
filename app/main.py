@@ -4,8 +4,6 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Must run before anything that reads env vars at import time (app.llm builds
-# the Gemini client as soon as it's imported).
 load_dotenv()
 
 from fastapi import FastAPI, HTTPException
@@ -29,8 +27,6 @@ app.add_middleware(
 STATIC_DIR = Path(__file__).parent / "static"
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-# --- In-memory session store -------------------------------------------------
-# {session_id: {"messages": [Gemini-format {"role", "parts"} messages], "ended": bool, "analytics": dict|None}}
 SESSIONS: dict[str, dict] = {}
 
 
@@ -65,7 +61,7 @@ def chat(req: ChatRequest):
 
     try:
         reply_text, updated_history = get_agent_reply(session["messages"])
-    except Exception as exc:  # surfaces missing/invalid API key etc. clearly to the UI
+    except Exception as exc:
         raise HTTPException(500, f"LLM call failed: {exc}") from exc
 
     session["messages"] = updated_history
@@ -85,8 +81,6 @@ def end_conversation(req: EndRequest):
         role = msg["role"]
         parts = msg["parts"]
         for part in parts:
-            # Dicts like {"text": ...} (our own appended user turns) or
-            # Gemini Part objects (model turns) with a .text attribute.
             text = part.get("text") if isinstance(part, dict) else getattr(part, "text", None)
             if text:
                 transcript_lines.append(f"{role}: {text}")

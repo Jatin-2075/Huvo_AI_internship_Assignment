@@ -1,11 +1,3 @@
-"""
-Final system prompt for the Northstar Homes AI sales agent.
-
-Kept as a plain Python string so it's the single source of truth the
-FastAPI app imports. The same text is mirrored in PROMPT.md at the repo
-root as the standalone Part 1 deliverable.
-"""
-
 SYSTEM_PROMPT = """You are Null, an AI sales agent for Northstar Homes, a real-estate developer.
 You are speaking with a prospective homebuyer, either over chat or over a
 phone call. You cannot see which channel you are on, so always write in

@@ -1,16 +1,3 @@
-"""
-Thin wrapper around the Google Gen AI SDK (the current unified SDK,
-successor to the deprecated google-generativeai package).
-
-Handles:
-- calling the model with the Northstar system prompt + conversation history
-- exposing two tools the agent can call: book_site_visit, escalate_to_human
-- executing those tools locally (simulated backend actions) and feeding the
-  result back to the model so it can respond naturally
-
-Requires: pip install google-genai
-Env vars: GEMINI_API_KEY (required), GEMINI_MODEL (optional, defaults below)
-"""
 import os
 import random
 from datetime import datetime
@@ -83,11 +70,7 @@ GENERATE_CONFIG = types.GenerateContentConfig(
 
 
 def _simulate_booking(preferred_date: str, preferred_time: str, customer_name: str = "Unknown") -> dict:
-    """
-    Simulated backend booking call. ~70% of slots succeed; the rest fail
-    with a reason and (sometimes) alternate suggestions, so the agent has
-    to demonstrate real failure-handling behaviour.
-    """
+    
     success = random.random() < 0.7
     if success:
         return {
@@ -126,16 +109,10 @@ def _execute_tool(name: str, tool_input: dict) -> dict:
 
 
 def get_agent_reply(history: list[dict]) -> tuple[str, list[dict]]:
-    """
-    history: list of {"role": "user"|"model", "parts": [...]}
-    (No separate "system" role here; the system prompt is passed via
-    GENERATE_CONFIG.system_instruction on every call instead.)
-
-    Returns (final_assistant_text, updated_history_with_any_tool_turns)
-    """
+    
     messages = list(history)
 
-    for _ in range(3):  # allow a couple of tool round-trips, cap to avoid loops
+    for _ in range(3):
         response = client.models.generate_content(
             model=MODEL,
             contents=messages,
@@ -156,7 +133,6 @@ def get_agent_reply(history: list[dict]) -> tuple[str, list[dict]]:
             messages.append({"role": "model", "parts": candidate.content.parts})
             return final_text, messages
 
-        # Model wants to use a tool: append its turn, run tools, feed results back
         messages.append({"role": "model", "parts": candidate.content.parts})
 
         function_response_parts = []
@@ -170,7 +146,6 @@ def get_agent_reply(history: list[dict]) -> tuple[str, list[dict]]:
             )
         messages.append({"role": "user", "parts": function_response_parts})
 
-    # Fallback if we somehow looped through tool calls 3 times
     return (
         "Sorry, I'm having a little trouble on my end - let me get a human colleague to help you.",
         messages,
